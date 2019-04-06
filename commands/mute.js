@@ -18,7 +18,7 @@ if(!muterole) {
 	try{
 		muterole = await message.guild.createRole({
 			name: "Muted"
-			color: "#514f48"
+			color: "#000000",
 			permissions: []
 		});
 		message.guild.channels.forEach(async (channel, id) => {
