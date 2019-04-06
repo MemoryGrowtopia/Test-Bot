@@ -1,62 +1,64 @@
-const Discord = require("discord.js");
-const botconfig = require("../botconfig.json");
+const red = botconfig.red;
+const green = botconfig.green;
+const orange = botconfig.orange;
+
+module.exports.run = async (bot, message, args) => {
 
 
-module.exports.run = async(bot, message, args) => {
-if(!message.member.hasPermissions("MANAGE_ROLES") || !message.guild.owner) return message.channel.send("You dont have permission to use this command.");
+  if(!message.member.hasPermission("MANAGE_MESSAGES")) return message.reply("No can do.");
+  if(args[0] == "help"){
+    message.reply("Usage: !mute <user> <1s/m/h/d>");
+    return;
+  }
+  let tomute = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
+  if(!tomute) return message.reply("Couldn't find user.");
+  if(tomute.hasPermission("MANAGE_MESSAGES")) return message.reply("Can't mute them!");
+  let reason = args.slice(2).join(" ");
+  if(!reason) return message.reply("Please supply a reason.");
 
-if(!message.guild.me.hasPermission(["MANAGE_ROLES", "ADMINISTRATOR"])) return message.channel.send("I Dont have permission thats sad")
-	
-let mutee = message.mentions.members.first() || message.guild.members.get(args[0]);
-if(!mutee) return message.channel.send("Supply a reason goddamn it");
-
-let reason = args.slice(1).join(" ");
-if(!reason) reason = "No reason given"
-
-let muterole = message.guild.roles.find(r => r.name === "Muted")
-if(!muterole) {
-	try{
-		muterole = await message.guild.createRole({
-			name: "Muted"
-			color: "#000000",
-			permissions: []
-		});
-		message.guild.channels.forEach(async (channel, id) => {
-			await channel.overwriePermissions(muterole, {
-				SEND_MESSAGES: false,
-				ADD_REACTIONS: false,
-				SEND_TTS_MESSAGES: false,
-				ATTACH_FILES: false,
-				SPEAK: false
-			})
-		})
-	} catch(e) {
-		console.log(e.stack);
-	}
-}
+  let muterole = message.guild.roles.find(`name`, "muted");
+  //start of create role
+  if(!muterole){
+    try{
+      muterole = await message.guild.createRole({
+        name: "muted",
+        color: "#000000",
+        permissions:[]
+      })
+      message.guild.channels.forEach(async (channel, id) => {
+        await channel.overwritePermissions(muterole, {
+          SEND_MESSAGES: false,
+          ADD_REACTIONS: false
+        });
+      });
+    }catch(e){
+      console.log(e.stack);
+    }
+  }
 
 
-mutee.addRole(muterole.id).then({) => {
+mutee.addRole(muterole.id).then(), ()=> {
 	message.delete()
-	mutee.send(`Hello, you got muted in ${message.guild.name} for: ${reason`}
+	mutee.send(`Hello, you got muted in ${message.guild.name}`)
 	message.channel.send(`${mutee.user.username} was successfuly muted.`)
-})
+});
 
+let muteembed = new Discord.RichEmbed()
+.setDescription(`Mute executed by ${message.author}`)
+.setColor(orange)
+.addField("Muted User", tomute)
+.addField("Muted in", message.channel)
+.addField("Time", message.createdAt)
+.addField("Length", mutetime)
+.addField("Reason", reason);
 
-let embed = new Discord.RichEmbed
-    .setColor("#15f153")
-    .setAuthor(`${message.guild.name}) Modlogs`, message.build.IconURL)
-    .addField("Moderation", "Mute")
-    .addField("Mutee:", mutee.user.username")
-	.addField("Date:", message.createdAt)
-	
-	let sChannel = message.guild.channels.find(c => c.name === "Modlogs")
-	sChannel.send(embed)
-}
+let incidentschannel = message.guild.channels.find(`name`, "incidents");
+if(!incidentschannel) return message.reply("Please create a incidents channel first!");
+incidentschannel.send(muteembed);
 
 
 module.exports.help = {
-  name: "tempmute"
+  name: "mute"
 }
 
 
